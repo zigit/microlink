@@ -32,6 +32,71 @@ menu "MicroLink V2 Configuration"
             communicate with). For large tailnets, set this to the actual
             peer count needed, not the total tailnet size.
 
+    config ML_TASK_NET_IO_PRIO
+        int "net_io task priority"
+        default 7
+        range 1 24
+        help
+            FreeRTOS priority for the net_io task (unified select() on all
+            sockets). See ML_TASK_PRIORITIES_HELP below for guidance.
+
+    config ML_TASK_DERP_TX_PRIO
+        int "derp_tx (DERP I/O) task priority"
+        default 5
+        range 1 24
+        help
+            FreeRTOS priority for the derp_tx task (sole DERP TLS reader/
+            writer). See ML_TASK_PRIORITIES_HELP below for guidance.
+
+    config ML_TASK_COORD_PRIO
+        int "coord task priority"
+        default 5
+        range 1 24
+        help
+            FreeRTOS priority for the coord task (Noise + HTTP/2 control
+            plane). See ML_TASK_PRIORITIES_HELP below for guidance.
+
+    config ML_TASK_WG_MGR_PRIO
+        int "wg_mgr task priority"
+        default 7
+        range 1 24
+        help
+            FreeRTOS priority for the wg_mgr task (WireGuard + DISCO + peer
+            management). See ML_TASK_PRIORITIES_HELP below for guidance.
+
+    config ML_TASK_PRIORITIES_HELP
+        bool "Task priority guidance (documentation only)"
+        default n
+        help
+            FIELD GUIDANCE (from a voice-call deployment): these four tasks
+            carry the tunnel (WG data, DISCO, STUN, DERP, control plane).
+            Their priorities only matter when the device ALSO runs a heavy
+            workload -- typically an audio/video DSP pipeline, whose tasks
+            run at their own priorities.
+
+            On such a device the defaults (7/5/5/7) can be COMPLETELY
+            starved by the media tasks: a ping through the tunnel died the
+            instant a call started, STUN probes went unanswered, DERP
+            writes stalled past the server's write deadline, and the call
+            was killed by the resulting keepalive timeout ~44s in, on
+            every call -- while idle was always clean.
+
+            If so, raise all four ABOVE your media pipeline's task
+            priorities. CAUTION, in order:
+            - Do not exceed your device's TLS/websocket client task
+              priority: raising these above it can preempt the client's
+              handshake entirely (observed: 50 consecutive connect
+              timeouts, node never reaching 'ready'). Time-slicing at
+              the SAME level is safe and sufficient.
+            - Keep them BELOW the audio-realtime floor (I2S buffers,
+              radio) -- those cannot tolerate preemption.
+            - Raise in steps and A/B each step on-device: same-direction
+              changes can have opposite outcomes (12 broke the
+              handshake; 11 fixed the starvation).
+
+            If your device has no heavy concurrent workload, the defaults
+            are correct as-is.
+
     config ML_PRIORITY_PEER_IP
         string "Priority peer VPN IP"
         default ""

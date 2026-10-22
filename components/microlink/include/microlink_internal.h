@@ -40,21 +40,24 @@ extern "C" {
  * Constants
  * ========================================================================== */
 
-/* Task configuration */
+/* Task configuration. Priorities come from Kconfig so an integrator can
+ * re-ladder them against their device's other workloads (see the
+ * ML_TASK_PRIORITIES_HELP guidance in Kconfig). Defaults preserve the
+ * historical values. */
 #define ML_TASK_NET_IO_STACK    (8 * 1024)
-#define ML_TASK_NET_IO_PRIO     7
+#define ML_TASK_NET_IO_PRIO     CONFIG_ML_TASK_NET_IO_PRIO
 #define ML_TASK_NET_IO_CORE     0
 
 #define ML_TASK_DERP_TX_STACK   (14 * 1024)
-#define ML_TASK_DERP_TX_PRIO    5
+#define ML_TASK_DERP_TX_PRIO    CONFIG_ML_TASK_DERP_TX_PRIO
 #define ML_TASK_DERP_TX_CORE    0
 
 #define ML_TASK_COORD_STACK     (12 * 1024)
-#define ML_TASK_COORD_PRIO      5
+#define ML_TASK_COORD_PRIO      CONFIG_ML_TASK_COORD_PRIO
 #define ML_TASK_COORD_CORE      1
 
 #define ML_TASK_WG_MGR_STACK    (8 * 1024)
-#define ML_TASK_WG_MGR_PRIO     7
+#define ML_TASK_WG_MGR_PRIO     CONFIG_ML_TASK_WG_MGR_PRIO
 #define ML_TASK_WG_MGR_CORE     1
 
 /* Queue depths.
